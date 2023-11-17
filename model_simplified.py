@@ -9,6 +9,10 @@ import numpy as np
 # 6) remove starting budget
 
 
+def discretize(value, increment=500):
+    return round(value / increment) * increment
+
+
 class CandidateDistribution:
     def __init__(self, avg_candidate_value, value_variance):
         self.avg_candidate_value = avg_candidate_value
@@ -16,10 +20,7 @@ class CandidateDistribution:
 
     def sample(self, discretized=True):
         value = np.random.normal(self.avg_candidate_value, self.value_variance)
-        if discretized:
-            # discretize the candidate value increments of 500
-            value = round(value / 500) * 500
-        return value
+        return discretize(value) if discretized else value
     
 
 # Environment parameters
@@ -46,8 +47,7 @@ class HiringEnvironment:
     def step(self, action):
         if action == "interview":
             interview_score = np.random.normal(self.true_candidate_value, self.interview_variance)
-            discretized_interview_score = round(interview_score / 500) * 500
-            self.state = [(self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1), self.state[1] + 1]
+            self.state = [discretize((self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1)), self.state[1] + 1]
             self.reward = -self.interview_cost
         elif action == "hire":
             self.reward = self.estimated_value - self.salary  # Reward based on estimated candidate value

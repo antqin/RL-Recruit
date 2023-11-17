@@ -101,7 +101,7 @@ class QLearningAgent:
                 state = next_state
 
 # Set the number of episodes for training
-num_episodes = 50000
+num_episodes = 4
 
 # Create the Q-learning agent with the environment
 ql_agent = QLearningAgent(env)
@@ -113,6 +113,6 @@ ql_agent.train(num_episodes)
 print(ql_agent.q_table)
 
 # Extracting and printing the optimal policy from the Q-table
-optimal_policy = [env.actions[np.argmax(action_values)] for action_values in ql_agent.q_table]
+optimal_policy = [env.actions[np.argmax(action_values)] for action_values in ql_agent.q_table.values()]
 
 print(optimal_policy)

@@ -6,18 +6,34 @@ import numpy as np
 # 3) discritization of candidate value so that we have more managable state space
 # 4) add rejecting the canddiate to the action space
 # 5) parameters should reflect real world
+# 6) remove starting budget
+
+
+class CandidateDistribution:
+    def __init__(self, average_candidate_value, value_variance):
+        self.average_candidate_value = average_candidate_value
+        self.value_variance = value_variance
+
+    def sample(self):
+        return np.random.normal(self.average_candidate_value, self.value_variance)
+    
+
+# Environment parameters
+INTERVIEW_COST = 300 # cost of interviewing a candidate
+SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
+CANDIDATE_DISTRIBUTION = CandidateDistribution(130000, 20000) # the candidate we are interviewing will be samples from this distribution
+
 
 class HiringEnvironment:
-    def __init__(self, interview_cost, hiring_cost, candidate_true_value, starting_budget, value_variance):
+    def __init__(self, interview_cost, salary, candidate_distribution):
         self.interview_cost = interview_cost
-        self.hiring_cost = hiring_cost
-        self.candidate_true_value = candidate_true_value
-        self.starting_budget = starting_budget
-        self.value_variance = value_variance  # Variance in value estimate decreases with more interviews
+        self.salary = salary
+        self.candidate_distribution = candidate_distribution
+
         self.state = 0  # Starting with 0 interviews
         self.terminal_state = 11  # Represents the "HIRE" state
         self.total_states = self.terminal_state + 1  # 0 to 10 interviews + HIRE state
-        self.actions = ["Interview", "Hire"]
+        self.actions = ["interview", "hire", "reject"]
         self.estimated_value = 0
         self.reward = 0
         self.done = False
@@ -25,12 +41,12 @@ class HiringEnvironment:
     def step(self, action):
         if action == "Interview" and self.state < 10:
             self.state += 1
-            self.estimated_value = np.random.normal(self.candidate_true_value, self.value_variance / self.state)
+            self.estimated_value = np.random.normal(self.candidate_value, self.value_variance / self.state)
             self.reward = -self.interview_cost
             self.done = False
         elif action == "Hire":
             self.state = self.terminal_state
-            self.reward = self.estimated_value - self.hiring_cost  # Reward based on estimated candidate value
+            self.reward = self.estimated_value - self.salary  # Reward based on estimated candidate value
             self.done = True
         else:
             self.reward = 0
@@ -44,16 +60,9 @@ class HiringEnvironment:
         self.reward = 0
         self.done = False
         return self.state
-
-# Example parameters
-interview_cost = 100
-hiring_cost = 5000
-candidate_true_value = 10000
-starting_budget = 10000
-value_variance = 5000
-
+    
 # Creating the environment
-env = HiringEnvironment(interview_cost, hiring_cost, candidate_true_value, starting_budget, value_variance)
+env = HiringEnvironment(INTERVIEW_COST, SALARY, CANDIDATE_DISTRIBUTION)
 
 # Example of environment interaction
 state = env.reset()

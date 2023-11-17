@@ -1,5 +1,12 @@
 import numpy as np
 
+# TODO:
+# 1) change the state to be a tuple of (avg interview score, num_interviews)
+# 2) estimated value should come from the same distribution every time - uncertaintiy is expressed in num_interviews, not explicitly in different variance
+# 3) discritization of candidate value so that we have more managable state space
+# 4) add rejecting the canddiate to the action space
+# 5) parameters should reflect real world
+
 class HiringEnvironment:
     def __init__(self, interview_cost, hiring_cost, candidate_true_value, starting_budget, value_variance):
         self.interview_cost = interview_cost

@@ -1,13 +1,5 @@
 import numpy as np
-
-# TODO:
-# 1) change the state to be a tuple of (avg interview score, num_interviews)
-# 2) estimated value should come from the same distribution every time - uncertaintiy is expressed in num_interviews, not explicitly in different variance
-# 3) discritization of candidate value so that we have more managable state space
-# 4) add rejecting the canddiate to the action space
-# 5) parameters should reflect real world
-# 6) remove starting budget
-
+from collections import defaultdict
 
 def discretize(value, increment=500):
     return round(value / increment) * increment
@@ -50,25 +42,25 @@ class HiringEnvironment:
             self.state = [discretize((self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1)), self.state[1] + 1]
             self.reward = -self.interview_cost
         elif action == "hire":
-            self.reward = self.estimated_value - self.salary  # Reward based on estimated candidate value
+            self.reward = self.true_candidate_value - self.salary
             self.terminated = True
         else:
             self.terminated = True
 
-        return self.state, self.reward, self.terminated
+        return tuple(self.state), self.reward, self.terminated
 
     def reset(self):
         self.state = [AVG_CANDIDATE_VALUE, 0]
         self.reward = 0
         self.terminated = False
-        return self.state
+        return tuple(self.state)
     
 # Creating the environment
 env = HiringEnvironment(INTERVIEW_COST, SALARY, CANDIDATE_DISTRIBUTION, INTERVIEW_VARIANCE)
 
 # Example of environment interaction
 state = env.reset()
-next_state, reward, done = env.step("Interview")
+next_state, reward, done = env.step("interview")
 print(f"Next State: {next_state}, Reward: {reward}, Done: {done}")
 
 # This setup is ready for Q-learning implementation, where the agent will choose actions and learn from interactions.
@@ -80,7 +72,7 @@ class QLearningAgent:
         self.lr = learning_rate
         self.gamma = discount_factor
         self.epsilon = epsilon
-        self.q_table = np.zeros((env.total_states, len(env.actions)))
+        self.q_table = defaultdict(lambda: [0, 0, 0])  # (avg interview score, num_interviews) -> [Q-value of interview, Q-value of hire, Q-value of reject]
 
     def choose_action(self, state):
         # Implementing epsilon-greedy policy

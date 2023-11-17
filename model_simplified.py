@@ -16,20 +16,20 @@ class CandidateDistribution:
     
 
 # Environment parameters
-INTERVIEW_COST = 3000 # cost of interviewing a candidate
+INTERVIEW_COST = 300 # cost of interviewing a candidate
 SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
-AVG_CANDIDATE_VALUE = 250000 # average value of a candidate
-CANDIDATE_VALUE_VARIANCE = 0 # variance of candidate value
-INTERVIEW_VARIANCE = 0 # variance of interview score
+AVG_CANDIDATE_VALUE = 130000 # average value of a candidate
+CANDIDATE_VALUE_VARIANCE = 20000 # variance of candidate value
+INTERVIEW_VARIANCE = 10000 # variance of interview score
 CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
 
 
 class HiringEnvironment:
-    def __init__(self, interview_cost, salary, candidate_distribution, interview_variance):
+    def __init__(self, interview_cost, salary, interview_variance):
         self.interview_cost = interview_cost
         self.salary = salary
         self.interview_variance = interview_variance
-        self.true_candidate_value = candidate_distribution.sample()
+        self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
 
         self.state = [AVG_CANDIDATE_VALUE, 0]  # (avg interview score, num_interviews)
         self.actions = ["hire", "reject", "interview"]
@@ -54,10 +54,11 @@ class HiringEnvironment:
         self.state = [AVG_CANDIDATE_VALUE, 0] # prior belief about the candidate
         self.reward = 0
         self.terminated = False
+        self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
         return tuple(self.state)
     
 # Creating the environment
-env = HiringEnvironment(INTERVIEW_COST, SALARY, CANDIDATE_DISTRIBUTION, INTERVIEW_VARIANCE)
+env = HiringEnvironment(INTERVIEW_COST, SALARY, INTERVIEW_VARIANCE)
 
 # Example of environment interaction
 state = env.reset()
@@ -68,7 +69,7 @@ print(f"Next State: {next_state}, Reward: {reward}, Done: {done}")
 import random
 
 class QLearningAgent:
-    def __init__(self, env, learning_rate=0.1, discount_factor=0.95, epsilon=0):
+    def __init__(self, env, learning_rate=0.1, discount_factor=0, epsilon=0.25):
         self.env = env
         self.lr = learning_rate
         self.gamma = discount_factor
@@ -105,7 +106,7 @@ class QLearningAgent:
                 print(f"Episode: {episode}, Reward: {reward}")
 
 # Set the number of episodes for training
-num_episodes = 1000
+num_episodes = 1000000
 
 # Create the Q-learning agent with the environment
 ql_agent = QLearningAgent(env)

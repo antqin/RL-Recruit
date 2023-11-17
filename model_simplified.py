@@ -14,8 +14,12 @@ class CandidateDistribution:
         self.avg_candidate_value = avg_candidate_value
         self.value_variance = value_variance
 
-    def sample(self):
-        return np.random.normal(self.avg_candidate_value, self.value_variance)
+    def sample(self, discretized=True):
+        value = np.random.normal(self.avg_candidate_value, self.value_variance)
+        if discretized:
+            # discretize the candidate value increments of 500
+            value = round(value / 500) * 500
+        return value
     
 
 # Environment parameters
@@ -31,37 +35,32 @@ class HiringEnvironment:
     def __init__(self, interview_cost, salary, candidate_distribution, interview_variance):
         self.interview_cost = interview_cost
         self.salary = salary
-        self.candidate_distribution = candidate_distribution
         self.interview_variance = interview_variance
+        self.true_candidate_value = candidate_distribution.sample()
 
         self.state = [AVG_CANDIDATE_VALUE, 0]  # (avg interview score, num_interviews)
-        self.terminal_state = 11  # Represents the "HIRE" state
-        self.total_states = self.terminal_state + 1  # 0 to 10 interviews + HIRE state
         self.actions = ["interview", "hire", "reject"]
-        self.estimated_value = 0
         self.reward = 0
-        self.done = False
+        self.terminated = False
 
     def step(self, action):
         if action == "interview":
-            interview_score = np.random.normal(self.state[0], self.interview_variance)
+            interview_score = np.random.normal(self.true_candidate_value, self.interview_variance)
+            discretized_interview_score = round(interview_score / 500) * 500
             self.state = [(self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1), self.state[1] + 1]
             self.reward = -self.interview_cost
-            self.done = False
         elif action == "hire":
-            self.state = self.terminal_state
             self.reward = self.estimated_value - self.salary  # Reward based on estimated candidate value
-            self.done = True
+            self.terminated = True
         else:
-            self.done = True
+            self.terminated = True
 
-        return self.state, self.reward, self.done
+        return self.state, self.reward, self.terminated
 
     def reset(self):
-        self.state = 0
-        self.estimated_value = 0
+        self.state = [AVG_CANDIDATE_VALUE, 0]
         self.reward = 0
-        self.done = False
+        self.terminated = False
         return self.state
     
 # Creating the environment

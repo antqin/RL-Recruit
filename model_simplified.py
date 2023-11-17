@@ -1,6 +1,7 @@
 import numpy as np
 from collections import defaultdict
 
+
 def discretize(value, increment=5000):
     return round(value / increment) * increment
 
@@ -45,7 +46,6 @@ class HiringEnvironment:
             self.reward = self.true_candidate_value - self.salary - self.interview_cost * self.state[1]
             self.terminated = True
         else:
-            self.reward = 0
             self.terminated = True
 
         return tuple(self.state), self.reward, self.terminated
@@ -69,7 +69,7 @@ print(f"Next State: {next_state}, Reward: {reward}, Done: {done}")
 import random
 
 class QLearningAgent:
-    def __init__(self, env, learning_rate=0.1, discount_factor=0, epsilon=0.25):
+    def __init__(self, env, learning_rate=0.1, discount_factor=0.95, epsilon=0.25):
         self.env = env
         self.lr = learning_rate
         self.gamma = discount_factor

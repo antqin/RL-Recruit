@@ -22,9 +22,9 @@ INTERVIEW_COST = 500 # cost of interviewing a candidate
 SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
 AVG_CANDIDATE_VALUE = 140000 # average value of a candidate
 CANDIDATE_VALUE_VARIANCE = 30000 # variance of candidate value
-INTERVIEW_VARIANCE = 40000 # variance of interview score
+INTERVIEW_VARIANCE = 30000 # variance of interview score
 CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
-NUM_CANDIDATES = 5 # number of candidates we can interview
+NUM_CANDIDATES = 3 # number of candidates we can interview
 
 class HiringEnvironment:
     def __init__(self, interview_cost, salary, interview_variance):
@@ -160,13 +160,16 @@ class GreedyAgent:
         return total_reward / num_episodes
 
 # Set the number of episodes for training
-num_episodes = 1000000
+num_episodes = 2000000
 
 # Create the Q-learning agent with the environment
 ql_agent = QLearningAgent(env)
 
 # Train the agent and capture evaluation results
 evaluation_results = ql_agent.train(num_episodes, evaluation_interval=50000, num_evaluation_episodes=10000)
+
+avg_reward = ql_agent.evaluate_policy(10000)
+print(f"Average reward of QL agent: {avg_reward}")
 
 # Plotting the results
 episodes, avg_rewards = zip(*evaluation_results)

@@ -20,8 +20,8 @@ class CandidateDistribution:
 # Environment parameters
 INTERVIEW_COST = 500 # cost of interviewing a candidate
 SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
-AVG_CANDIDATE_VALUE = 145000 # average value of a candidate
-CANDIDATE_VALUE_VARIANCE = 20000 # variance of candidate value
+AVG_CANDIDATE_VALUE = 140000 # average value of a candidate
+CANDIDATE_VALUE_VARIANCE = 30000 # variance of candidate value
 INTERVIEW_VARIANCE = 10000 # variance of interview score
 CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
 
@@ -79,8 +79,6 @@ class QLearningAgent:
         self.q_table = defaultdict(lambda: [0, 0, 0])  # (avg interview score, num_interviews) -> [Q-value of interview, Q-value of hire, Q-value of reject]
 
     def choose_action(self, state):
-        if state[1] > 5:
-            return "reject"
         # Implementing epsilon-greedy policy
         if random.uniform(0, 1) < self.epsilon:
             return random.choice(self.env.actions)  # Explore
@@ -147,4 +145,7 @@ plt.plot(episodes, avg_rewards, marker='o')
 plt.xlabel('Episodes')
 plt.ylabel('Average Reward')
 plt.title('Average Reward vs. Training Episodes')
+
+# Save the plot to a file
+plt.savefig('q-learning-training.png')
 plt.show()

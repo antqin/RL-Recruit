@@ -3,7 +3,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 
 
-def discretize(value, increment=100):
+def discretize(value, increment=1000):
     return round(value / increment) * increment
 
 
@@ -22,9 +22,9 @@ INTERVIEW_COST = 500 # cost of interviewing a candidate
 SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
 AVG_CANDIDATE_VALUE = 140000 # average value of a candidate
 CANDIDATE_VALUE_VARIANCE = 30000 # variance of candidate value
-INTERVIEW_VARIANCE = 10000 # variance of interview score
+INTERVIEW_VARIANCE = 40000 # variance of interview score
 CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
-
+NUM_CANDIDATES = 5 # number of candidates we can interview
 
 class HiringEnvironment:
     def __init__(self, interview_cost, salary, interview_variance):
@@ -33,7 +33,7 @@ class HiringEnvironment:
         self.interview_variance = interview_variance
         self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
 
-        self.state = [AVG_CANDIDATE_VALUE, 0]  # (avg interview score, num_interviews)
+        self.state = [AVG_CANDIDATE_VALUE, 0, 0]  # (avg interview score, num_interviews, candidate_number)
         self.actions = ["hire", "interview", "reject"]
         self.reward = 0
         self.terminated = False
@@ -41,18 +41,22 @@ class HiringEnvironment:
     def step(self, action):
         if action == "interview":
             interview_score = np.random.normal(self.true_candidate_value, self.interview_variance)
-            self.state = [discretize((self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1)), self.state[1] + 1]
+            self.state = [discretize((self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1)), self.state[1] + 1, self.state[2]]
             self.reward -= self.interview_cost
         elif action == "hire":
-            self.reward = self.true_candidate_value - self.salary - self.interview_cost * self.state[1]
-            self.terminated = True
+            self.reward += self.true_candidate_value - self.salary
+            self.terminated = True  
         else:
-            self.terminated = True
+            if self.state[2] == NUM_CANDIDATES - 1:
+                self.terminated = True
+            else:
+                self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
+                self.state = [AVG_CANDIDATE_VALUE, 0, self.state[2] + 1]
 
         return tuple(self.state), self.reward, self.terminated
 
     def reset(self):
-        self.state = [AVG_CANDIDATE_VALUE, 0] # prior belief about the candidate
+        self.state = [AVG_CANDIDATE_VALUE, 0, 0] # prior belief about the candidate
         self.reward = 0
         self.terminated = False
         self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()

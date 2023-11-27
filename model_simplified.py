@@ -3,7 +3,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 
 
-def discretize(value, increment=5000):
+def discretize(value, increment=100):
     return round(value / increment) * increment
 
 
@@ -128,16 +128,41 @@ class QLearningAgent:
                 total_reward += reward
                 state = next_state
         return total_reward / num_episodes
+    
+
+# Greedy agent that will do one interview and then hire if the interview score is above the salary
+class GreedyAgent:
+    def __init__(self, env):
+        self.env = env
+
+    def choose_action(self, state):
+        if state[1] == 0:
+            return "interview"
+        elif state[0] > SALARY:
+            return "hire"
+        else:
+            return "reject"
+
+    def evaluate_policy(self, num_episodes):
+        total_reward = 0
+        for _ in range(num_episodes):
+            state = self.env.reset()
+            done = False
+            while not done:
+                action = self.choose_action(state)
+                next_state, reward, done = self.env.step(action)
+                total_reward += reward
+                state = next_state
+        return total_reward / num_episodes
 
 # Set the number of episodes for training
-num_episodes = 10000
+num_episodes = 1000000
 
-# Create the Q-learning agent with the environment
 # Create the Q-learning agent with the environment
 ql_agent = QLearningAgent(env)
 
 # Train the agent and capture evaluation results
-evaluation_results = ql_agent.train(num_episodes, evaluation_interval=250, num_evaluation_episodes=1000)
+evaluation_results = ql_agent.train(num_episodes, evaluation_interval=50000, num_evaluation_episodes=10000)
 
 # Plotting the results
 episodes, avg_rewards = zip(*evaluation_results)
@@ -148,4 +173,9 @@ plt.title('Average Reward vs. Training Episodes')
 
 # Save the plot to a file
 plt.savefig('q-learning-training.png')
+
+# Evaluate the greedy agent
+greedy_agent = GreedyAgent(env)
+avg_reward = greedy_agent.evaluate_policy(10000)
+print(f"Average reward of greedy agent: {avg_reward}")
 plt.show()

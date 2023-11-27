@@ -8,10 +8,7 @@ from gymnasium import spaces
 class MultiCandidateHiringEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
 
-    def __init__(self, render_mode=None, size=5):
-        self.size = size  # The size of the square grid
-        self.window_size = 512  # The size of the PyGame window
-
+    def __init__(self, render_mode=None):
         # Observations are dictionaries with the agent's and the target's location.
         # Each location is encoded as an element of {0, ..., `size`}^2, i.e. MultiDiscrete([size, size]).
         self.observation_space = spaces.Dict(
@@ -21,8 +18,8 @@ class MultiCandidateHiringEnv(gym.Env):
             }
         )
 
-        # We have 4 actions, corresponding to "right", "up", "left", "down"
-        self.action_space = spaces.Discrete(4)
+        # We have 3 actions: "hire", "reject", and "interview".
+        self.action_space = spaces.Discrete(3)
 
         """
         The following dictionary maps abstract actions from `self.action_space` to

@@ -1,5 +1,6 @@
 import numpy as np
 from collections import defaultdict
+import matplotlib.pyplot as plt
 
 
 def discretize(value, increment=5000):
@@ -17,9 +18,9 @@ class CandidateDistribution:
     
 
 # Environment parameters
-INTERVIEW_COST = 300 # cost of interviewing a candidate
+INTERVIEW_COST = 500 # cost of interviewing a candidate
 SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
-AVG_CANDIDATE_VALUE = 140000 # average value of a candidate
+AVG_CANDIDATE_VALUE = 145000 # average value of a candidate
 CANDIDATE_VALUE_VARIANCE = 20000 # variance of candidate value
 INTERVIEW_VARIANCE = 10000 # variance of interview score
 CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
@@ -33,7 +34,7 @@ class HiringEnvironment:
         self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
 
         self.state = [AVG_CANDIDATE_VALUE, 0]  # (avg interview score, num_interviews)
-        self.actions = ["hire", "reject", "interview"]
+        self.actions = ["hire", "interview", "reject"]
         self.reward = 0
         self.terminated = False
 
@@ -41,7 +42,7 @@ class HiringEnvironment:
         if action == "interview":
             interview_score = np.random.normal(self.true_candidate_value, self.interview_variance)
             self.state = [discretize((self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1)), self.state[1] + 1]
-            self.reward = -self.interview_cost
+            self.reward -= self.interview_cost
         elif action == "hire":
             self.reward = self.true_candidate_value - self.salary - self.interview_cost * self.state[1]
             self.terminated = True
@@ -69,7 +70,7 @@ print(f"Next State: {next_state}, Reward: {reward}, Done: {done}")
 import random
 
 class QLearningAgent:
-    def __init__(self, env, learning_rate=0.1, discount_factor=0.95, epsilon=0.2):
+    def __init__(self, env, learning_rate=0.1, discount_factor=1, epsilon=0.3):
         self.env = env
         self.lr = learning_rate
         self.inv_lr = 1 - learning_rate
@@ -94,7 +95,8 @@ class QLearningAgent:
         new_q = self.inv_lr * current_q + self.lr * (reward + self.gamma * max_future_q - current_q)
         self.q_table[state][action_index] = new_q
     
-    def train(self, num_episodes, verbose=False):
+    def train(self, num_episodes, evaluation_interval=50000, num_evaluation_episodes=10000):
+        evaluation_results = []
         for episode in range(num_episodes):
             state = self.env.reset()
             done = False
@@ -104,9 +106,14 @@ class QLearningAgent:
                 next_state, reward, done = self.env.step(action)
                 self.learn(state, action, reward, next_state)
                 state = next_state
-            
-            if verbose and episode % 10000 == 0:
-                print(f"Episode: {episode}, Reward: {reward}")
+
+            # Evaluate every 'evaluation_interval' episodes
+            if episode % evaluation_interval == 0:
+                avg_reward = self.evaluate_policy(num_evaluation_episodes)
+                evaluation_results.append((episode, avg_reward))
+                print(f"Episode: {episode}, Average Reward: {avg_reward}")
+
+        return evaluation_results
 
     def evaluate_policy(self, num_episodes):
         total_reward = 0
@@ -116,30 +123,28 @@ class QLearningAgent:
             while not done:
                 # Choose the best action from Q-table
                 action = self.env.actions[np.argmax(self.q_table[state])]
+                # Always interview if candidate hasn't been interviewed yet
+                if state[1] == 0:
+                    action = "interview"
                 next_state, reward, done = self.env.step(action)
                 total_reward += reward
                 state = next_state
         return total_reward / num_episodes
 
 # Set the number of episodes for training
-num_episodes = 1000000
+num_episodes = 10000
 
+# Create the Q-learning agent with the environment
 # Create the Q-learning agent with the environment
 ql_agent = QLearningAgent(env)
 
-# Train the agent
-ql_agent.train(num_episodes, verbose=True)
+# Train the agent and capture evaluation results
+evaluation_results = ql_agent.train(num_episodes, evaluation_interval=250, num_evaluation_episodes=1000)
 
-# Display the final Q-table
-# print(ql_agent.q_table)
-
-optimal_policy = {}
-for state, actions in ql_agent.q_table.items():
-    optimal_policy[state] = ql_agent.env.actions[np.argmax(actions)]
-print(optimal_policy)
-
-
-# Evaluate the policy
-num_evaluation_episodes = 10000
-average_reward = ql_agent.evaluate_policy(num_evaluation_episodes)
-print(f"Average Reward of Optimal Policy over {num_evaluation_episodes} candidates: {average_reward}")
+# Plotting the results
+episodes, avg_rewards = zip(*evaluation_results)
+plt.plot(episodes, avg_rewards, marker='o')
+plt.xlabel('Episodes')
+plt.ylabel('Average Reward')
+plt.title('Average Reward vs. Training Episodes')
+plt.show()

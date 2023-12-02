@@ -1,6 +1,7 @@
 import numpy as np
 from collections import defaultdict
 import matplotlib.pyplot as plt
+import env_params
 
 
 def discretize(value, increment=1000):
@@ -17,23 +18,14 @@ class CandidateDistribution:
         return discretize(value) if discretized else value
     
 
-# Environment parameters
-INTERVIEW_COST = 500 # cost of interviewing a candidate
-SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
-AVG_CANDIDATE_VALUE = 140000 # average value of a candidate
-CANDIDATE_VALUE_VARIANCE = 30000 # variance of candidate value
-INTERVIEW_VARIANCE = 30000 # variance of interview score
-CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
-NUM_CANDIDATES = 3 # number of candidates we can interview
-
 class HiringEnvironment:
     def __init__(self, interview_cost, salary, interview_variance):
         self.interview_cost = interview_cost
         self.salary = salary
         self.interview_variance = interview_variance
-        self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
+        self.true_candidate_value = env_params.CANDIDATE_DISTRIBUTION.sample()
 
-        self.state = [AVG_CANDIDATE_VALUE, 0, 0]  # (avg interview score, num_interviews, candidate_number)
+        self.state = [env_params.AVG_CANDIDATE_VALUE, 0, 0]  # (avg interview score, num_interviews, candidate_number)
         self.actions = ["hire", "interview", "reject"]
         self.reward = 0
         self.terminated = False
@@ -47,23 +39,23 @@ class HiringEnvironment:
             self.reward += self.true_candidate_value - self.salary
             self.terminated = True  
         else:
-            if self.state[2] == NUM_CANDIDATES - 1:
+            if self.state[2] == env_params.NUM_CANDIDATES - 1:
                 self.terminated = True
             else:
-                self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
-                self.state = [AVG_CANDIDATE_VALUE, 0, self.state[2] + 1]
+                self.true_candidate_value = env_params.CANDIDATE_DISTRIBUTION.sample()
+                self.state = [env_params.AVG_CANDIDATE_VALUE, 0, self.state[2] + 1]
 
         return tuple(self.state), self.reward, self.terminated
 
     def reset(self):
-        self.state = [AVG_CANDIDATE_VALUE, 0, 0] # prior belief about the candidate
+        self.state = [env_params.AVG_CANDIDATE_VALUE, 0, 0] # prior belief about the candidate
         self.reward = 0
         self.terminated = False
-        self.true_candidate_value = CANDIDATE_DISTRIBUTION.sample()
+        self.true_candidate_value = env_params.CANDIDATE_DISTRIBUTION.sample()
         return tuple(self.state)
     
 # Creating the environment
-env = HiringEnvironment(INTERVIEW_COST, SALARY, INTERVIEW_VARIANCE)
+env = HiringEnvironment(env_params.INTERVIEW_COST, env_params.SALARY, env_params.INTERVIEW_VARIANCE)
 
 # Example of environment interaction
 state = env.reset()
@@ -142,7 +134,7 @@ class GreedyAgent:
     def choose_action(self, state):
         if state[1] == 0:
             return "interview"
-        elif state[0] > SALARY:
+        elif state[0] > env_params.SALARY:
             return "hire"
         else:
             return "reject"

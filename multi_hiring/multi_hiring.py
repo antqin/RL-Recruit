@@ -6,21 +6,21 @@ from gymnasium.spaces import Box, Discrete, Tuple
 import env_params
 
 
-class MultiCandidateHiringEnv(gym.Env):
+class MultiHiringEnv(gym.Env):
 
-    def __init__(self):
+    def __init__(self, render_mode=None):
         # We have 3 actions: interview, reject, hire
         self.action_space = spaces.Discrete(3)
 
         # The state is represented by a 3-tuple:
         # (avg interview score, num_interviews, candidate_number)
-        self.observation_space = Tuple((Box(low=-np.inf, high=np.inf, shape=(1)), Discrete(50, start=0), Discrete(env_params.NUM_CANDIDATES)))
+        self.observation_space = Box(low=-np.inf, high=np.inf, shape=(3,))
 
         self.true_candidate_value = env_params.CANDIDATE_DISTRIBUTION.sample()
         self.salary = env_params.SALARY
         self.interview_cost = env_params.INTERVIEW_COST
         self.interview_variance = env_params.INTERVIEW_VARIANCE
-        self.state = [[env_params.AVG_CANDIDATE_VALUE], 0, 0]
+        self.state = [env_params.AVG_CANDIDATE_VALUE, 0, 0]
 
     def step(self, action):
         terminated = False
@@ -28,7 +28,7 @@ class MultiCandidateHiringEnv(gym.Env):
 
         if action == 0: # interview
             interview_score = np.random.normal(self.true_candidate_value, self.interview_variance)
-            self.state = [[(self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1)], self.state[1] + 1, self.state[2]]
+            self.state = [(self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1), self.state[1] + 1, self.state[2]]
             reward = -self.interview_cost
         elif action == 1: # hire
             reward = self.true_candidate_value - self.salary
@@ -38,12 +38,16 @@ class MultiCandidateHiringEnv(gym.Env):
                 terminated = True
             else:
                 self.true_candidate_value = env_params.CANDIDATE_DISTRIBUTION.sample()
-                self.state = [[env_params.AVG_CANDIDATE_VALUE], 0, self.state[2] + 1]
+                self.state = [env_params.AVG_CANDIDATE_VALUE, 0, self.state[2] + 1]
             reward = 0
 
-        return tuple(self.state), reward, terminated, {}
+        return np.array(self.state, dtype=np.float32), reward, terminated, False, {}
     
-    def reset(self):
-        self.state = [[env_params.AVG_CANDIDATE_VALUE], 0, 0]
+    def reset(self, seed=None, options=None):
+
+        self.state = [env_params.AVG_CANDIDATE_VALUE, 0, 0]
         self.true_candidate_value = env_params.CANDIDATE_DISTRIBUTION.sample()
-        return tuple(self.state)
+        return np.array(self.state, dtype=np.float32), {}
+    
+    def render(self):
+        pass

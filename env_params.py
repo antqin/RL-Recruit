@@ -18,4 +18,4 @@ AVG_CANDIDATE_VALUE = 140000 # average value of a candidate
 CANDIDATE_VALUE_VARIANCE = 30000 # variance of candidate value
 INTERVIEW_VARIANCE = 30000 # variance of interview score
 CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
-NUM_CANDIDATES = 3 # number of candidates we can interview
+NUM_CANDIDATES = 1 # number of candidates we can interview

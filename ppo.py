@@ -9,7 +9,7 @@ import numpy as np
 # Parallel environments
 vec_env = make_vec_env('MultiHiring-v0', n_envs=4, env_kwargs={"render_mode": None})
 
-model = PPO("MultiInputPolicy", vec_env, verbose=1, policy_kwargs=policy_kwargs)
+model = PPO("MultiInputPolicy", vec_env, verbose=1)
 model.learn(total_timesteps=500_000)
 
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=1000)

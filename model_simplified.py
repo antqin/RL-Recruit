@@ -150,6 +150,26 @@ class GreedyAgent:
                 total_reward += reward
                 state = next_state
         return total_reward / num_episodes
+    
+# Random agent that will randomly choose an action
+class RandomAgent:
+    def __init__(self, env):
+        self.env = env
+
+    def choose_action(self, state):
+        return random.choice(self.env.actions)
+
+    def evaluate_policy(self, num_episodes):
+        total_reward = 0
+        for _ in range(num_episodes):
+            state = self.env.reset()
+            done = False
+            while not done:
+                action = self.choose_action(state)
+                next_state, reward, done = self.env.step(action)
+                total_reward += reward
+                state = next_state
+        return total_reward / num_episodes
 
 # Set the number of episodes for training
 num_episodes = 2000000
@@ -162,6 +182,11 @@ evaluation_results = ql_agent.train(num_episodes, evaluation_interval=50000, num
 
 avg_reward = ql_agent.evaluate_policy(10000)
 print(f"Average reward of QL agent: {avg_reward}")
+
+#print out policy formmatted
+for k, v in ql_agent.q_table.items():
+    print("State: ", k, "Action: ", ql_agent.env.actions[np.argmax(v)])
+    print("\n")
 
 # Plotting the results
 episodes, avg_rewards = zip(*evaluation_results)
@@ -177,4 +202,9 @@ plt.savefig('q-learning-training.png')
 greedy_agent = GreedyAgent(env)
 avg_reward = greedy_agent.evaluate_policy(10000)
 print(f"Average reward of greedy agent: {avg_reward}")
+
+# Evaluate the random agent
+random_agent = RandomAgent(env)
+avg_reward = random_agent.evaluate_policy(10000)
+print(f"Average reward of random agent: {avg_reward}")
 plt.show()

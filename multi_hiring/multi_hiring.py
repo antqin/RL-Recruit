@@ -40,6 +40,8 @@ class MultiHiringEnv(gym.Env):
             interview_score = np.random.normal(self.true_candidate_value, self.interview_variance)
             self.state = [(self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1), self.state[1] + 1, self.state[2]]
             reward = -self.interview_cost
+            if self.state[1] == 0:
+                reward = 100000
         elif action == 1: # hire
             reward = self.true_candidate_value - self.salary
             terminated = True

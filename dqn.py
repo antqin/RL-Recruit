@@ -12,8 +12,8 @@ eval_env = VecNormalize(make_vec_env('MultiHiring-v0', n_envs=4, env_kwargs={"re
 
 train_env = VecNormalize(make_vec_env('MultiHiringTrain-v0', n_envs=4, env_kwargs={"render_mode": None}), norm_obs_keys=["avg_interview_score"])
 
-model = PPO("MultiInputPolicy", train_env, verbose=1, gamma=1)
-model.learn(total_timesteps=500_000)
+model = DQN("MultiInputPolicy", train_env, verbose=1, gamma=1)
+model.learn(total_timesteps=500_000, log_interval=10_000)
 
 mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=100_000, deterministic=False)
 print("Mean reward:", mean_reward, "Std reward:", std_reward)

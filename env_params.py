@@ -15,7 +15,7 @@ class CandidateDistribution:
 INTERVIEW_COST = 500 # cost of interviewing a candidate
 SALARY = 150000 # salary of the candidate (we must pay this amount upon hire)
 AVG_CANDIDATE_VALUE = 140000 # average value of a candidate
-CANDIDATE_VALUE_VARIANCE = 30000 # variance of candidate value
-INTERVIEW_VARIANCE = 30000 # variance of interview score
+CANDIDATE_VALUE_STD = 30000 # variance of candidate value
+INTERVIEW_STD = 30000 # variance of interview score
 CANDIDATE_DISTRIBUTION = CandidateDistribution(AVG_CANDIDATE_VALUE, CANDIDATE_VALUE_VARIANCE) # the candidate we are interviewing will be samples from this distribution
 NUM_CANDIDATES =3 # number of candidates we can interview

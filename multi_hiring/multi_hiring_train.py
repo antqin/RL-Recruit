@@ -25,9 +25,9 @@ class MultiHiringTrainEnv(MultiHiringEnv):
     def step(self, action):
         # inheret from MultiVCEnvironment
         observation, reward, terminated, truncated, _ = super().step(action)
-        if action == -1:
-            num_times_interviewed = observation["interview_count"]
-            reward += 1000 / (num_times_interviewed + 1)
+        # if action == -1:
+        #     num_times_interviewed = observation["interview_count"]
+        #     reward += 1000 / (num_times_interviewed + 1)
 
 
         return observation, reward, terminated, truncated, _

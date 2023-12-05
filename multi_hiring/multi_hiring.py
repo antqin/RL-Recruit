@@ -11,7 +11,7 @@ class MultiHiringEnv(gym.Env):
 
     def __init__(self, render_mode=None):
         # We have 3 actions: interview, reject, hire
-        self.action_space = spaces.Discrete(start=-1, n=3)
+        self.action_space = spaces.Discrete(3)
 
         # The state is represented by a 3-tuple:
         # (avg interview score, num_interviews, candidate_number)
@@ -36,12 +36,12 @@ class MultiHiringEnv(gym.Env):
         terminated = False
         reward = 0
 
-        if action == -1: # interview
+        if action == 0: # interview
             interview_score = np.random.normal(self.true_candidate_value, self.interview_variance)
             self.state = [(self.state[0] * self.state[1] + interview_score) / (self.state[1] + 1), self.state[1] + 1, self.state[2]]
             if self.state[1] >= 99:
                 terminated = True
-        elif action == 0: # hire
+        elif action == 1: # hire
             reward = self.true_candidate_value - self.salary - self.state[1] * self.interview_cost
             terminated = True
         else: # reject

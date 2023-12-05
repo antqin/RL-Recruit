@@ -12,7 +12,7 @@ eval_env = VecNormalize(make_vec_env('MultiHiring-v0', n_envs=4, env_kwargs={"re
 
 train_env = VecNormalize(make_vec_env('MultiHiringTrain-v0', n_envs=4, env_kwargs={"render_mode": None}), norm_obs_keys=["avg_interview_score"])
 
-model = DQN("MultiInputPolicy", train_env, verbose=1, gamma=1)
+model = DQN("MultiInputPolicy", train_env, verbose=1, gamma=1, tensorboard_log="./tensorboard_ppo")
 model.learn(total_timesteps=500_000, log_interval=10_000)
 
 mean_reward, std_reward = evaluate_policy(model, eval_env, n_eval_episodes=100_000, deterministic=False)

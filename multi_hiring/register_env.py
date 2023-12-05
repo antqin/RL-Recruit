@@ -6,4 +6,9 @@ gym.register(
     entry_point='multi_hiring.multi_hiring:MultiHiringEnv',
 )
 
+gym.register(
+    id='MultiHiringTrain-v0',
+    entry_point='multi_hiring.multi_hiring_train:MultiHiringTrainEnv',
+)
+
 
